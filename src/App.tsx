@@ -314,6 +314,11 @@ export function App() {
         <Box
           tabIndex={0}
           onClick={onToggle}
+          onKeyDown={(event) => {
+            if (event.key === 'Enter' || event.key === ' ') {
+              onToggle()
+            }
+          }}
           position="absolute"
           top="-8"
           right="10"
