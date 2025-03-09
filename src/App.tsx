@@ -17,7 +17,6 @@ import {
   Table,
   useDisclosure,
 } from '@chakra-ui/react'
-import { DataListItem, DataListRoot } from '@components/ui/data-list'
 import { EmptyState } from '@components/ui/empty-state'
 import { Field } from '@components/ui/field'
 import {
@@ -27,6 +26,7 @@ import {
   SelectRoot,
   SelectTrigger,
 } from '@components/ui/select'
+import { ViewAddressDialog } from '@components/view-address-dialog'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { STATES } from '@utils/data'
 import { ArrowRight, ChevronDown, ChevronUp, MapPinned, Search, X } from 'lucide-react'
@@ -39,7 +39,7 @@ const states = createListCollection({
   items: [...STATES],
 })
 
-type Address = {
+export type Address = {
   id: string
   zipcode: string
   street: string
@@ -475,44 +475,42 @@ export function App() {
           </Flex>
 
           {addresses.length > 0 ? (
-            <Dialog.Root placement="center">
-              <Dialog.Backdrop backdropFilter="blur(4px)" />
-
-              <Table.ScrollArea height="400px">
-                <Table.Root stickyHeader>
-                  <Table.Header>
+            <Table.ScrollArea height="400px">
+              <Table.Root stickyHeader>
+                <Table.Header>
+                  <Table.Row
+                    bg="gray.900"
+                    css={{
+                      '& > th': { color: 'bg.muted', borderColor: 'gray.800' },
+                    }}
+                  >
+                    <Table.ColumnHeader>#</Table.ColumnHeader>
+                    <Table.ColumnHeader>Endereço</Table.ColumnHeader>
+                    <Table.ColumnHeader>Bairro</Table.ColumnHeader>
+                    <Table.ColumnHeader>Cidade</Table.ColumnHeader>
+                    <Table.ColumnHeader>Estado</Table.ColumnHeader>
+                    <Table.ColumnHeader>CEP</Table.ColumnHeader>
+                    <Table.ColumnHeader>Ações</Table.ColumnHeader>
+                  </Table.Row>
+                </Table.Header>
+                <Table.Body>
+                  {addresses.map((address) => (
                     <Table.Row
+                      key={address.id}
                       bg="gray.900"
+                      color="bg.muted"
                       css={{
-                        '& > th': { color: 'bg.muted', borderColor: 'gray.800' },
+                        '& > td': { borderColor: 'gray.800' },
                       }}
                     >
-                      <Table.ColumnHeader>#</Table.ColumnHeader>
-                      <Table.ColumnHeader>Endereço</Table.ColumnHeader>
-                      <Table.ColumnHeader>Bairro</Table.ColumnHeader>
-                      <Table.ColumnHeader>Cidade</Table.ColumnHeader>
-                      <Table.ColumnHeader>Estado</Table.ColumnHeader>
-                      <Table.ColumnHeader>CEP</Table.ColumnHeader>
-                      <Table.ColumnHeader>Ações</Table.ColumnHeader>
-                    </Table.Row>
-                  </Table.Header>
-                  <Table.Body>
-                    {addresses.map((address) => (
-                      <Table.Row
-                        key={address.id}
-                        bg="gray.900"
-                        color="bg.muted"
-                        css={{
-                          '& > td': { borderColor: 'gray.800' },
-                        }}
-                      >
-                        <Table.Cell>{address.id}</Table.Cell>
-                        <Table.Cell>{`${address.street}, ${address.streetNumber}${address.complement ? `, ${address.complement}` : ''}`}</Table.Cell>
-                        <Table.Cell>{address.neighborhood}</Table.Cell>
-                        <Table.Cell>{address.city}</Table.Cell>
-                        <Table.Cell>{address.state}</Table.Cell>
-                        <Table.Cell>{address.zipcode}</Table.Cell>
-                        <Table.Cell>
+                      <Table.Cell>{address.id}</Table.Cell>
+                      <Table.Cell>{`${address.street}, ${address.streetNumber}${address.complement ? `, ${address.complement}` : ''}`}</Table.Cell>
+                      <Table.Cell>{address.neighborhood}</Table.Cell>
+                      <Table.Cell>{address.city}</Table.Cell>
+                      <Table.Cell>{address.state}</Table.Cell>
+                      <Table.Cell>{address.zipcode}</Table.Cell>
+                      <Table.Cell>
+                        <Dialog.Root placement="center">
                           <Dialog.Trigger asChild>
                             <IconButton
                               aria-label="Ver endereço"
@@ -523,64 +521,15 @@ export function App() {
                               <Search />
                             </IconButton>
                           </Dialog.Trigger>
-                        </Table.Cell>
-                      </Table.Row>
-                    ))}
-                  </Table.Body>
-                </Table.Root>
-              </Table.ScrollArea>
 
-              <Dialog.Positioner>
-                <Dialog.Content bg="gray.950">
-                  <Dialog.Header
-                    display="flex"
-                    justifyContent="space-between"
-                    alignItems="center"
-                  >
-                    <Dialog.Title color="bg.muted">Endereço</Dialog.Title>
-
-                    <Dialog.CloseTrigger cursor="pointer">
-                      <Icon
-                        color="bg.muted"
-                        _hover={{ color: 'purple.500' }}
-                      >
-                        <X />
-                      </Icon>
-                    </Dialog.CloseTrigger>
-                  </Dialog.Header>
-
-                  <Dialog.Body>
-                    <DataListRoot>
-                      <DataListItem
-                        label="Rua"
-                        value="Rua Zumbi"
-                      />
-                      <DataListItem
-                        label="Número"
-                        value="2"
-                      />
-                      <DataListItem
-                        label="Bairro"
-                        value="Côlonia"
-                      />
-                      <DataListItem
-                        label="Cidade"
-                        value="Ribeirão Pires"
-                      />
-                      <DataListItem
-                        label="Estado"
-                        value="São Paulo"
-                      />
-
-                      <DataListItem
-                        label="CEP"
-                        value="09405-400"
-                      />
-                    </DataListRoot>
-                  </Dialog.Body>
-                </Dialog.Content>
-              </Dialog.Positioner>
-            </Dialog.Root>
+                          <ViewAddressDialog data={address} />
+                        </Dialog.Root>
+                      </Table.Cell>
+                    </Table.Row>
+                  ))}
+                </Table.Body>
+              </Table.Root>
+            </Table.ScrollArea>
           ) : (
             <EmptyState
               title="Lista de endereços vazia"
