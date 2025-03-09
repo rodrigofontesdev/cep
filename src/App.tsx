@@ -27,10 +27,13 @@ import {
   SelectRoot,
   SelectTrigger,
 } from '@components/ui/select'
-import { ADDRESSES, STATES } from '@utils/data'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { STATES } from '@utils/data'
 import { ArrowRight, ChevronDown, ChevronUp, MapPinned, Search, X } from 'lucide-react'
-import { useState } from 'react'
-import { withMask } from 'use-mask-input'
+import React, { useState } from 'react'
+import { Controller, useForm } from 'react-hook-form'
+import { useHookFormMask } from 'use-mask-input'
+import { z } from 'zod'
 
 const states = createListCollection({
   items: [...STATES],
@@ -47,11 +50,99 @@ type Address = {
   state: string
 }
 
+const saveAddressSchema = z.object({
+  zipcode: z
+    .string()
+    .trim()
+    .min(8, { message: 'O campo CEP é obrigatório' })
+    .regex(/^[0-9]{5}-[0-9]{3}$/i, {
+      message: 'O formato do CEP é inválido.',
+    }),
+  street: z.string().trim().min(1, { message: 'O campo rua é obrigatório' }),
+  streetNumber: z.string().trim().min(1, { message: 'O campo número é obrigatório' }),
+  complement: z.string().trim().optional(),
+  neighborhood: z.string().trim().min(1, { message: 'O campo bairro é obrigatório' }),
+  city: z.string().trim().min(1, { message: 'O campo cidade é obrigatório' }),
+  state: z.string().array().nonempty({ message: 'O campo estado é obrigatório' }),
+})
+
+type AddressForm = z.infer<typeof saveAddressSchema>
+
 export function App() {
-  const [addresses, setAddresses] = useState<Address[]>([...ADDRESSES])
+  const [addresses, setAddresses] = useState<Address[]>([])
   const { open, onToggle } = useDisclosure({
     defaultOpen: true,
   })
+  const {
+    register,
+    handleSubmit,
+    control,
+    formState: { errors, isSubmitting, isSubmitted },
+    setValue,
+    setFocus,
+    reset,
+  } = useForm<AddressForm>({
+    reValidateMode: 'onSubmit',
+    resolver: zodResolver(saveAddressSchema),
+    defaultValues: {
+      zipcode: '',
+      street: '',
+      streetNumber: '',
+      complement: '',
+      neighborhood: '',
+      city: '',
+      state: [],
+    },
+  })
+  const registerWithMask = useHookFormMask(register)
+  const [enableFieldEditing, setEnableFieldEditing] = useState(false)
+
+  function saveAddress(data: AddressForm) {
+    const { street, streetNumber, complement, neighborhood, city, state, zipcode } = data
+    const stateName = STATES.find((item) => item.value === state[0])?.label
+
+    setAddresses((prevState) => [
+      {
+        id: crypto.randomUUID(),
+        street,
+        streetNumber,
+        complement,
+        neighborhood,
+        city,
+        state: stateName ?? '',
+        zipcode,
+      },
+      ...prevState,
+    ])
+
+    setEnableFieldEditing(false)
+    reset()
+  }
+
+  async function getAddress(event: React.FocusEvent<HTMLInputElement>) {
+    const zipcode = event.target.value.replace(/[^0-9]/g, '')
+
+    if (zipcode === '' || zipcode.length < 8) return
+
+    try {
+      const response = await fetch(`https://viacep.com.br/ws/${zipcode}/json`)
+      const data = await response.json()
+
+      if ('erro' in data) {
+        console.log('O CEP não foi encontrado')
+        return
+      }
+
+      setValue('street', data.logradouro)
+      setValue('neighborhood', data.bairro)
+      setValue('city', data.localidade)
+      setValue('state', [data.uf])
+      setEnableFieldEditing(true)
+      setFocus('street')
+    } catch {
+      console.log('Não foi possível consultar o CEP')
+    }
+  }
 
   return (
     <Box bg="gray.800">
@@ -77,18 +168,19 @@ export function App() {
           animationDuration="moderate"
         >
           <Container py="6">
-            <form>
+            <form
+              onSubmit={handleSubmit(saveAddress)}
+              noValidate
+            >
               <Stack gap="3">
                 <Field
                   label="CEP"
-                  errorText="O campo é obrigatório"
-                  required
-                  invalid={false}
+                  errorText={errors.zipcode?.message}
+                  invalid={!!errors.zipcode}
                 >
                   <Input
                     type="text"
                     placeholder="00000-000"
-                    ref={withMask('99999-999')}
                     autoFocus
                     variant="subtle"
                     size="sm"
@@ -106,20 +198,21 @@ export function App() {
                       transitionDuration: 'slow',
                       transitionTimingFunction: 'ease-in-out',
                     }}
+                    {...registerWithMask('zipcode', ['99999-999'])}
+                    onBlur={getAddress}
                   />
                 </Field>
 
                 <Flex gap="3">
                   <Field
                     label="Rua"
-                    errorText="O campo é obrigatório"
-                    required
-                    invalid={false}
+                    errorText={errors.street?.message}
+                    invalid={!!errors.street}
                   >
                     <Input
                       type="text"
                       placeholder="Av. Paulista"
-                      disabled={true}
+                      disabled={!enableFieldEditing}
                       variant="subtle"
                       size="sm"
                       bg="gray.800"
@@ -136,19 +229,19 @@ export function App() {
                         transitionDuration: 'slow',
                         transitionTimingFunction: 'ease-in-out',
                       }}
+                      {...register('street')}
                     />
                   </Field>
 
                   <Field
                     label="Número"
-                    errorText="O campo é obrigatório"
-                    required
-                    invalid={false}
+                    errorText={errors.streetNumber?.message}
+                    invalid={!!errors.streetNumber}
                   >
                     <Input
                       type="text"
                       placeholder="123"
-                      disabled={true}
+                      disabled={!enableFieldEditing}
                       variant="subtle"
                       size="sm"
                       bg="gray.800"
@@ -165,6 +258,7 @@ export function App() {
                         transitionDuration: 'slow',
                         transitionTimingFunction: 'ease-in-out',
                       }}
+                      {...register('streetNumber')}
                     />
                   </Field>
 
@@ -178,13 +272,13 @@ export function App() {
                         Opcional
                       </Badge>
                     }
-                    errorText="O campo é obrigatório"
-                    invalid={false}
+                    errorText={errors.complement?.message}
+                    invalid={!!errors.complement}
                   >
                     <Input
                       type="text"
                       placeholder="apt. 100"
-                      disabled={true}
+                      disabled={!enableFieldEditing}
                       variant="subtle"
                       size="sm"
                       bg="gray.800"
@@ -201,6 +295,7 @@ export function App() {
                         transitionDuration: 'slow',
                         transitionTimingFunction: 'ease-in-out',
                       }}
+                      {...register('complement')}
                     />
                   </Field>
                 </Flex>
@@ -208,14 +303,13 @@ export function App() {
                 <Flex gap="3">
                   <Field
                     label="Bairro"
-                    errorText="O campo é obrigatório"
-                    required
-                    invalid={false}
+                    errorText={errors.neighborhood?.message}
+                    invalid={!!errors.neighborhood}
                   >
                     <Input
                       type="text"
                       placeholder="Bela Vista"
-                      disabled={true}
+                      disabled={!enableFieldEditing}
                       variant="subtle"
                       size="sm"
                       bg="gray.800"
@@ -232,19 +326,19 @@ export function App() {
                         transitionDuration: 'slow',
                         transitionTimingFunction: 'ease-in-out',
                       }}
+                      {...register('neighborhood')}
                     />
                   </Field>
 
                   <Field
                     label="Cidade"
-                    errorText="O campo é obrigatório"
-                    required
-                    invalid={false}
+                    errorText={errors.city?.message}
+                    invalid={!!errors.city}
                   >
                     <Input
                       type="text"
                       placeholder="São Paulo"
-                      disabled={true}
+                      disabled={!enableFieldEditing}
                       variant="subtle"
                       size="sm"
                       bg="gray.800"
@@ -261,35 +355,45 @@ export function App() {
                         transitionDuration: 'slow',
                         transitionTimingFunction: 'ease-in-out',
                       }}
+                      {...register('city')}
                     />
                   </Field>
 
                   <Field
-                    errorText="O campo é obrigatório"
-                    invalid={false}
+                    errorText={errors.state?.message}
+                    invalid={!!errors.state}
                   >
-                    <SelectRoot
-                      variant="subtle"
-                      size="sm"
-                      collection={states}
-                      required
-                      disabled={true}
-                    >
-                      <SelectLabel>Estado</SelectLabel>
-                      <SelectTrigger>
-                        <SelectValueText placeholder="Selecionar estado" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {states.items.map((state) => (
-                          <SelectItem
-                            item={state}
-                            key={state.value}
-                          >
-                            {state.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </SelectRoot>
+                    <Controller
+                      control={control}
+                      name="state"
+                      render={({ field }) => (
+                        <SelectRoot
+                          name={field.name}
+                          value={field.value}
+                          collection={states}
+                          variant="subtle"
+                          size="sm"
+                          disabled={!enableFieldEditing}
+                          onValueChange={({ value }) => field.onChange(value)}
+                          onInteractOutside={() => field.onBlur()}
+                        >
+                          <SelectLabel>Estado</SelectLabel>
+                          <SelectTrigger>
+                            <SelectValueText placeholder="Selecionar estado" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {states.items.map((state) => (
+                              <SelectItem
+                                item={state}
+                                key={state.value}
+                              >
+                                {state.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </SelectRoot>
+                      )}
+                    />
                   </Field>
                 </Flex>
               </Stack>
@@ -300,10 +404,10 @@ export function App() {
                   variant="solid"
                   size="lg"
                   colorPalette="purple"
-                  loading={false}
+                  loading={isSubmitting}
                   loadingText="Enviando"
                   spinnerPlacement="start"
-                  disabled={true}
+                  disabled={!enableFieldEditing}
                 >
                   Enviar <ArrowRight />
                 </Button>
@@ -311,8 +415,8 @@ export function App() {
             </form>
           </Container>
         </Presence>
-        <Box
-          tabIndex={0}
+        <Button
+          unstyled
           onClick={onToggle}
           onKeyDown={(event) => {
             if (event.key === 'Enter' || event.key === ' ') {
@@ -340,7 +444,7 @@ export function App() {
           }}
         >
           {open ? <ChevronDown size={28} /> : <ChevronUp size={28} />}
-        </Box>
+        </Button>
       </Box>
 
       <Box
