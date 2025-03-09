@@ -56,7 +56,7 @@ const saveAddressSchema = z.object({
     .trim()
     .min(8, { message: 'O campo CEP é obrigatório' })
     .regex(/^[0-9]{5}-[0-9]{3}$/i, {
-      message: 'O formato do CEP é inválido.',
+      message: 'O formato do CEP é inválido',
     }),
   street: z.string().trim().min(1, { message: 'O campo rua é obrigatório' }),
   streetNumber: z.string().trim().min(1, { message: 'O campo número é obrigatório' }),
@@ -77,9 +77,10 @@ export function App() {
     register,
     handleSubmit,
     control,
-    formState: { errors, isSubmitting, isSubmitted },
+    formState: { errors, isSubmitting },
     setValue,
     setFocus,
+    setError,
     reset,
   } = useForm<AddressForm>({
     reValidateMode: 'onSubmit',
@@ -129,7 +130,7 @@ export function App() {
       const data = await response.json()
 
       if ('erro' in data) {
-        console.log('O CEP não foi encontrado')
+        setError('zipcode', { message: 'O CEP informado não foi encontrado' })
         return
       }
 
@@ -140,7 +141,9 @@ export function App() {
       setEnableFieldEditing(true)
       setFocus('street')
     } catch {
-      console.log('Não foi possível consultar o CEP')
+      setError('zipcode', {
+        message: 'Não foi possível consultar o CEP, verifique a sua requisição',
+      })
     }
   }
 
