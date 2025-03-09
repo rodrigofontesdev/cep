@@ -29,7 +29,7 @@ import {
 import { ViewAddressDialog } from '@components/view-address-dialog'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { STATES } from '@utils/data'
-import { ArrowRight, ChevronDown, ChevronUp, MapPinned, Search, X } from 'lucide-react'
+import { ArrowRight, ChevronDown, ChevronUp, MapPinned, Search } from 'lucide-react'
 import React, { useState } from 'react'
 import { Controller, useForm } from 'react-hook-form'
 import { useHookFormMask } from 'use-mask-input'
@@ -171,10 +171,7 @@ export function App() {
           animationDuration="moderate"
         >
           <Container py="6">
-            <form
-              onSubmit={handleSubmit(saveAddress)}
-              noValidate
-            >
+            <form onSubmit={handleSubmit(saveAddress)}>
               <Stack gap="3">
                 <Field
                   label="CEP"
@@ -182,26 +179,11 @@ export function App() {
                   invalid={!!errors.zipcode}
                 >
                   <Input
+                    {...registerWithMask('zipcode', ['99999-999'])}
                     type="text"
                     placeholder="00000-000"
-                    autoFocus
-                    variant="subtle"
                     size="sm"
-                    bg="gray.800"
-                    color="bg.muted"
-                    _placeholder={{ color: 'gray.500' }}
-                    _focus={{
-                      borderColor: 'purple.500',
-                      boxShadow: '0 0 0 .25rem var(--shadow-color)',
-                      boxShadowColor: 'purple.600/25',
-                      _invalid: { outline: 'none' },
-                    }}
-                    _motionSafe={{
-                      transitionProperty: 'border-color, box-shadow',
-                      transitionDuration: 'slow',
-                      transitionTimingFunction: 'ease-in-out',
-                    }}
-                    {...registerWithMask('zipcode', ['99999-999'])}
+                    autoFocus
                     onBlur={getAddress}
                   />
                 </Field>
@@ -213,26 +195,11 @@ export function App() {
                     invalid={!!errors.street}
                   >
                     <Input
+                      {...register('street')}
                       type="text"
                       placeholder="Av. Paulista"
                       disabled={!enableFieldEditing}
-                      variant="subtle"
                       size="sm"
-                      bg="gray.800"
-                      color="bg.muted"
-                      _placeholder={{ color: 'gray.500' }}
-                      _focus={{
-                        borderColor: 'purple.500',
-                        boxShadow: '0 0 0 .25rem var(--shadow-color)',
-                        boxShadowColor: 'purple.600/25',
-                        _invalid: { outline: 'none' },
-                      }}
-                      _motionSafe={{
-                        transitionProperty: 'border-color, box-shadow',
-                        transitionDuration: 'slow',
-                        transitionTimingFunction: 'ease-in-out',
-                      }}
-                      {...register('street')}
                     />
                   </Field>
 
@@ -242,26 +209,11 @@ export function App() {
                     invalid={!!errors.streetNumber}
                   >
                     <Input
+                      {...register('streetNumber')}
                       type="text"
                       placeholder="123"
                       disabled={!enableFieldEditing}
-                      variant="subtle"
                       size="sm"
-                      bg="gray.800"
-                      color="bg.muted"
-                      _placeholder={{ color: 'gray.500' }}
-                      _focus={{
-                        borderColor: 'purple.500',
-                        boxShadow: '0 0 0 .25rem var(--shadow-color)',
-                        boxShadowColor: 'purple.600/25',
-                        _invalid: { outline: 'none' },
-                      }}
-                      _motionSafe={{
-                        transitionProperty: 'border-color, box-shadow',
-                        transitionDuration: 'slow',
-                        transitionTimingFunction: 'ease-in-out',
-                      }}
-                      {...register('streetNumber')}
                     />
                   </Field>
 
@@ -279,26 +231,11 @@ export function App() {
                     invalid={!!errors.complement}
                   >
                     <Input
+                      {...register('complement')}
                       type="text"
                       placeholder="apt. 100"
                       disabled={!enableFieldEditing}
-                      variant="subtle"
                       size="sm"
-                      bg="gray.800"
-                      color="bg.muted"
-                      _placeholder={{ color: 'gray.500' }}
-                      _focus={{
-                        borderColor: 'purple.500',
-                        boxShadow: '0 0 0 .25rem var(--shadow-color)',
-                        boxShadowColor: 'purple.600/25',
-                        _invalid: { outline: 'none' },
-                      }}
-                      _motionSafe={{
-                        transitionProperty: 'border-color, box-shadow',
-                        transitionDuration: 'slow',
-                        transitionTimingFunction: 'ease-in-out',
-                      }}
-                      {...register('complement')}
                     />
                   </Field>
                 </Flex>
@@ -310,26 +247,11 @@ export function App() {
                     invalid={!!errors.neighborhood}
                   >
                     <Input
+                      {...register('neighborhood')}
                       type="text"
                       placeholder="Bela Vista"
                       disabled={!enableFieldEditing}
-                      variant="subtle"
                       size="sm"
-                      bg="gray.800"
-                      color="bg.muted"
-                      _placeholder={{ color: 'gray.500' }}
-                      _focus={{
-                        borderColor: 'purple.500',
-                        boxShadow: '0 0 0 .25rem var(--shadow-color)',
-                        boxShadowColor: 'purple.600/25',
-                        _invalid: { outline: 'none' },
-                      }}
-                      _motionSafe={{
-                        transitionProperty: 'border-color, box-shadow',
-                        transitionDuration: 'slow',
-                        transitionTimingFunction: 'ease-in-out',
-                      }}
-                      {...register('neighborhood')}
                     />
                   </Field>
 
@@ -339,26 +261,11 @@ export function App() {
                     invalid={!!errors.city}
                   >
                     <Input
+                      {...register('city')}
                       type="text"
                       placeholder="São Paulo"
                       disabled={!enableFieldEditing}
-                      variant="subtle"
                       size="sm"
-                      bg="gray.800"
-                      color="bg.muted"
-                      _placeholder={{ color: 'gray.500' }}
-                      _focus={{
-                        borderColor: 'purple.500',
-                        boxShadow: '0 0 0 .25rem var(--shadow-color)',
-                        boxShadowColor: 'purple.600/25',
-                        _invalid: { outline: 'none' },
-                      }}
-                      _motionSafe={{
-                        transitionProperty: 'border-color, box-shadow',
-                        transitionDuration: 'slow',
-                        transitionTimingFunction: 'ease-in-out',
-                      }}
-                      {...register('city')}
                     />
                   </Field>
 
