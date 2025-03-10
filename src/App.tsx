@@ -13,6 +13,7 @@ import {
   Input,
   Presence,
   SelectValueText,
+  Show,
   Stack,
   Table,
   useDisclosure,
@@ -27,130 +28,35 @@ import {
   SelectTrigger,
 } from '@components/ui/select'
 import { ViewAddressDialog } from '@components/view-address-dialog'
-import { zodResolver } from '@hookform/resolvers/zod'
+import { useAddress } from '@hooks/useAddress'
 import { STATES } from '@utils/data'
 import { ArrowRight, ChevronDown, ChevronUp, MapPinned, Search } from 'lucide-react'
-import React, { useState } from 'react'
-import { Controller, useForm } from 'react-hook-form'
-import { useHookFormMask } from 'use-mask-input'
-import { z } from 'zod'
+import { Controller } from 'react-hook-form'
 
 const states = createListCollection({
   items: [...STATES],
 })
 
-export type Address = {
-  id: string
-  zipcode: string
-  street: string
-  streetNumber: string
-  complement?: string
-  neighborhood: string
-  city: string
-  state: string
-}
-
-const saveAddressSchema = z.object({
-  zipcode: z
-    .string()
-    .trim()
-    .min(8, { message: 'O campo CEP é obrigatório' })
-    .regex(/^[0-9]{5}-[0-9]{3}$/i, {
-      message: 'O formato do CEP é inválido',
-    }),
-  street: z.string().trim().min(1, { message: 'O campo rua é obrigatório' }),
-  streetNumber: z.string().trim().min(1, { message: 'O campo número é obrigatório' }),
-  complement: z.string().trim().optional(),
-  neighborhood: z.string().trim().min(1, { message: 'O campo bairro é obrigatório' }),
-  city: z.string().trim().min(1, { message: 'O campo cidade é obrigatório' }),
-  state: z.string().array().nonempty({ message: 'O campo estado é obrigatório' }),
-})
-
-type AddressForm = z.infer<typeof saveAddressSchema>
-
 export function App() {
-  const [addresses, setAddresses] = useState<Address[]>([])
-  const { open, onToggle } = useDisclosure({
+  const {
+    addresses,
+    getAddress,
+    register,
+    registerWithMask,
+    handleSaveAddress,
+    errors,
+    enableFieldEditing,
+    control,
+    isSubmitting,
+  } = useAddress()
+  const { open: isSaveAddressFormOpen, onToggle } = useDisclosure({
     defaultOpen: true,
   })
-  const {
-    register,
-    handleSubmit,
-    control,
-    formState: { errors, isSubmitting },
-    setValue,
-    setFocus,
-    setError,
-    reset,
-  } = useForm<AddressForm>({
-    reValidateMode: 'onSubmit',
-    resolver: zodResolver(saveAddressSchema),
-    defaultValues: {
-      zipcode: '',
-      street: '',
-      streetNumber: '',
-      complement: '',
-      neighborhood: '',
-      city: '',
-      state: [],
-    },
-  })
-  const registerWithMask = useHookFormMask(register)
-  const [enableFieldEditing, setEnableFieldEditing] = useState(false)
-
-  function saveAddress(data: AddressForm) {
-    const { street, streetNumber, complement, neighborhood, city, state, zipcode } = data
-    const stateName = STATES.find((item) => item.value === state[0])?.label
-
-    setAddresses((prevState) => [
-      {
-        id: crypto.randomUUID(),
-        street,
-        streetNumber,
-        complement,
-        neighborhood,
-        city,
-        state: stateName ?? '',
-        zipcode,
-      },
-      ...prevState,
-    ])
-
-    setEnableFieldEditing(false)
-    reset()
-  }
-
-  async function getAddress(event: React.FocusEvent<HTMLInputElement>) {
-    const zipcode = event.target.value.replace(/[^0-9]/g, '')
-
-    if (zipcode === '' || zipcode.length < 8) return
-
-    try {
-      const response = await fetch(`https://viacep.com.br/ws/${zipcode}/json`)
-      const data = await response.json()
-
-      if ('erro' in data) {
-        setError('zipcode', { message: 'O CEP informado não foi encontrado' })
-        return
-      }
-
-      setValue('street', data.logradouro)
-      setValue('neighborhood', data.bairro)
-      setValue('city', data.localidade)
-      setValue('state', [data.uf])
-      setEnableFieldEditing(true)
-      setFocus('street')
-    } catch {
-      setError('zipcode', {
-        message: 'Não foi possível consultar o CEP, verifique a sua requisição',
-      })
-    }
-  }
 
   return (
     <Box bg="gray.800">
       <Box
-        data-state={open ? 'open' : 'closed'}
+        data-state={isSaveAddressFormOpen ? 'open' : 'closed'}
         position="fixed"
         bottom="0"
         insetX="0"
@@ -163,7 +69,7 @@ export function App() {
       >
         <Presence
           bg="gray.900"
-          present={open}
+          present={isSaveAddressFormOpen}
           animationName={{
             _open: 'slide-from-bottom-full',
             _closed: 'slide-to-bottom-full',
@@ -171,7 +77,7 @@ export function App() {
           animationDuration="moderate"
         >
           <Container py="6">
-            <form onSubmit={handleSubmit(saveAddress)}>
+            <form onSubmit={handleSaveAddress}>
               <Stack gap="3">
                 <Field
                   label="CEP"
@@ -325,6 +231,7 @@ export function App() {
             </form>
           </Container>
         </Presence>
+
         <Button
           unstyled
           onClick={onToggle}
@@ -353,7 +260,7 @@ export function App() {
             transitionTimingFunction: 'ease-in-out',
           }}
         >
-          {open ? <ChevronDown size={28} /> : <ChevronUp size={28} />}
+          {isSaveAddressFormOpen ? <ChevronDown size={28} /> : <ChevronUp size={28} />}
         </Button>
       </Box>
 
@@ -381,8 +288,22 @@ export function App() {
             </Badge>
           </Flex>
 
-          {addresses.length > 0 ? (
-            <Table.ScrollArea height="400px">
+          <Show
+            when={addresses.length > 0}
+            fallback={
+              <EmptyState
+                title="Lista de endereços vazia"
+                description="Utilize o formulário para cadastrar o seu primeiro endereço"
+                icon={
+                  <Icon color="purple.400">
+                    <MapPinned />
+                  </Icon>
+                }
+                pt="16"
+              />
+            }
+          >
+            <Table.ScrollArea>
               <Table.Root stickyHeader>
                 <Table.Header>
                   <Table.Row
@@ -391,7 +312,6 @@ export function App() {
                       '& > th': { color: 'bg.muted', borderColor: 'gray.800' },
                     }}
                   >
-                    <Table.ColumnHeader>#</Table.ColumnHeader>
                     <Table.ColumnHeader>Endereço</Table.ColumnHeader>
                     <Table.ColumnHeader>Bairro</Table.ColumnHeader>
                     <Table.ColumnHeader>Cidade</Table.ColumnHeader>
@@ -410,7 +330,6 @@ export function App() {
                         '& > td': { borderColor: 'gray.800' },
                       }}
                     >
-                      <Table.Cell>{address.id}</Table.Cell>
                       <Table.Cell>{`${address.street}, ${address.streetNumber}${address.complement ? `, ${address.complement}` : ''}`}</Table.Cell>
                       <Table.Cell>{address.neighborhood}</Table.Cell>
                       <Table.Cell>{address.city}</Table.Cell>
@@ -437,18 +356,7 @@ export function App() {
                 </Table.Body>
               </Table.Root>
             </Table.ScrollArea>
-          ) : (
-            <EmptyState
-              title="Lista de endereços vazia"
-              description="Utilize o formulário para cadastrar o seu primeiro endereço"
-              icon={
-                <Icon color="purple.400">
-                  <MapPinned />
-                </Icon>
-              }
-              pt="16"
-            />
-          )}
+          </Show>
         </Container>
       </Box>
     </Box>
