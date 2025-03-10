@@ -30,8 +30,8 @@ const STATES = [
 
 const ADDRESSES = [
   {
-    id: 'dsf7a8sdf7a8fa',
-    zipcode: '09405400',
+    id: '1',
+    zipcode: '09405-400',
     street: 'Rua Zumbi',
     streetNumber: '2',
     neighborhood: 'Colônia',
@@ -39,8 +39,8 @@ const ADDRESSES = [
     state: 'São Paulo',
   },
   {
-    id: 'kaj34902934292',
-    zipcode: '01310914',
+    id: '2',
+    zipcode: '01310-914',
     street: 'Av. Paulista',
     streetNumber: '1106',
     complement: 'Sala 01 - Andar 16',

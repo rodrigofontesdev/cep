@@ -1,5 +1,5 @@
 import { CloseButton, Dialog, Portal } from '@chakra-ui/react'
-import { Address } from '../App'
+import { Address } from '@hooks/useAddress'
 import { DataListItem, DataListRoot } from './ui/data-list'
 
 type ViewAddressDialogProps = {
