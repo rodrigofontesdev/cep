@@ -51,6 +51,13 @@ npm run dev
 
 - Buscar endereço a partir do CEP
 - Salvar endereço na tabela
+- Visualizar dados do endereço
+
+## Comentários
+
+A busca de endereço por CEP é realizada utilizando o webservice **ViaCEP**, por oferecer uma integração simples sem necessidade de autenticação e não possuir cobranças.
+
+A comunicação com a API utiliza o **Fetch API**, um cliente HTTP nativo do JavaScript que possibilita requisições assíncronas. Diferentemente de bibliotecas como Axios, o Fetch API não possui suporte a tipagem.
 
 ## Construído com
 
