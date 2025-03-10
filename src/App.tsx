@@ -5,19 +5,17 @@ import {
   Center,
   Container,
   createListCollection,
-  Dialog,
   Flex,
   Heading,
   Icon,
-  IconButton,
   Input,
   Presence,
   SelectValueText,
   Show,
   Stack,
-  Table,
   useDisclosure,
 } from '@chakra-ui/react'
+import { AddressTable } from '@components/address-table'
 import { EmptyState } from '@components/ui/empty-state'
 import { Field } from '@components/ui/field'
 import {
@@ -27,10 +25,9 @@ import {
   SelectRoot,
   SelectTrigger,
 } from '@components/ui/select'
-import { ViewAddressDialog } from '@components/view-address-dialog'
 import { useAddress } from '@hooks/useAddress'
 import { STATES } from '@utils/data'
-import { ArrowRight, ChevronDown, ChevronUp, MapPinned, Search } from 'lucide-react'
+import { ArrowRight, ChevronDown, ChevronUp, MapPinned } from 'lucide-react'
 import { Controller } from 'react-hook-form'
 
 const states = createListCollection({
@@ -303,59 +300,7 @@ export function App() {
               />
             }
           >
-            <Table.ScrollArea>
-              <Table.Root stickyHeader>
-                <Table.Header>
-                  <Table.Row
-                    bg="gray.900"
-                    css={{
-                      '& > th': { color: 'bg.muted', borderColor: 'gray.800' },
-                    }}
-                  >
-                    <Table.ColumnHeader>Endereço</Table.ColumnHeader>
-                    <Table.ColumnHeader>Bairro</Table.ColumnHeader>
-                    <Table.ColumnHeader>Cidade</Table.ColumnHeader>
-                    <Table.ColumnHeader>Estado</Table.ColumnHeader>
-                    <Table.ColumnHeader>CEP</Table.ColumnHeader>
-                    <Table.ColumnHeader>Ações</Table.ColumnHeader>
-                  </Table.Row>
-                </Table.Header>
-                <Table.Body>
-                  {addresses.map((address) => (
-                    <Table.Row
-                      key={address.id}
-                      bg="gray.900"
-                      color="bg.muted"
-                      css={{
-                        '& > td': { borderColor: 'gray.800' },
-                      }}
-                    >
-                      <Table.Cell>{`${address.street}, ${address.streetNumber}${address.complement ? `, ${address.complement}` : ''}`}</Table.Cell>
-                      <Table.Cell>{address.neighborhood}</Table.Cell>
-                      <Table.Cell>{address.city}</Table.Cell>
-                      <Table.Cell>{address.state}</Table.Cell>
-                      <Table.Cell>{address.zipcode}</Table.Cell>
-                      <Table.Cell>
-                        <Dialog.Root placement="center">
-                          <Dialog.Trigger asChild>
-                            <IconButton
-                              aria-label="Ver endereço"
-                              variant="solid"
-                              size="xs"
-                              colorPalette="purple"
-                            >
-                              <Search />
-                            </IconButton>
-                          </Dialog.Trigger>
-
-                          <ViewAddressDialog data={address} />
-                        </Dialog.Root>
-                      </Table.Cell>
-                    </Table.Row>
-                  ))}
-                </Table.Body>
-              </Table.Root>
-            </Table.ScrollArea>
+            <AddressTable entries={addresses} />
           </Show>
         </Container>
       </Box>
