@@ -42,7 +42,6 @@ export function useAddress() {
     handleSubmit,
     control,
     setValue,
-    setFocus,
     setError,
     reset,
     formState: { errors, isSubmitting },
@@ -98,7 +97,6 @@ export function useAddress() {
       setValue('neighborhood', data.bairro)
       setValue('city', data.localidade)
       setValue('state', [data.uf])
-      setFocus('street')
       setEnableFieldEditing(true)
     } catch {
       setError('zipcode', {
@@ -117,11 +115,7 @@ export function useAddress() {
     handleSaveAddress,
     control,
     enableFieldEditing,
-    setEnableFieldEditing,
     errors,
     isSubmitting,
-    setValue,
-    setFocus,
-    setError,
   }
 }
