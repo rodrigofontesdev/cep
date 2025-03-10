@@ -232,11 +232,6 @@ export function App() {
         <Button
           unstyled
           onClick={onToggle}
-          onKeyDown={(event) => {
-            if (event.key === 'Enter' || event.key === ' ') {
-              onToggle()
-            }
-          }}
           position="absolute"
           top="-8"
           right="10"
