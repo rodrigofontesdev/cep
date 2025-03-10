@@ -23,7 +23,7 @@ export function AddressTable({ entries }: AddressTableProps) {
             <Table.ColumnHeader>Cidade</Table.ColumnHeader>
             <Table.ColumnHeader>Estado</Table.ColumnHeader>
             <Table.ColumnHeader>CEP</Table.ColumnHeader>
-            <Table.ColumnHeader>Ações</Table.ColumnHeader>
+            <Table.ColumnHeader textAlign="end">Ações</Table.ColumnHeader>
           </Table.Row>
         </Table.Header>
         <Table.Body>
@@ -41,7 +41,7 @@ export function AddressTable({ entries }: AddressTableProps) {
               <Table.Cell>{entry.city}</Table.Cell>
               <Table.Cell>{entry.state}</Table.Cell>
               <Table.Cell>{entry.zipcode}</Table.Cell>
-              <Table.Cell>
+              <Table.Cell textAlign="end">
                 <Dialog.Root placement="center">
                   <Dialog.Trigger asChild>
                     <IconButton
